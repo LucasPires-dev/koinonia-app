@@ -1,14 +1,19 @@
-import { LayoutDashboard, MessageSquare, Users, Calendar, MessageCircle } from "lucide-react";
+import { LayoutDashboard, MessageSquare, Users, Calendar, MessageCircle, Settings, LogOut } from "lucide-react";
 import { NavLink } from "react-router-dom";
+import { useAuth } from "../hooks/auth-context";
 
 const NAV_ITEMS = [
   { to: "/", label: "Visão geral", icon: LayoutDashboard, end: true },
   { to: "/contatos", label: "Contatos WhatsApp", icon: Users },
   { to: "/mensagens", label: "Mensagens", icon: MessageSquare },
   { to: "/agenda", label: "Agenda", icon: Calendar },
+  { to: "/configuracoes", label: "Configurações", icon: Settings },
 ];
 
 export default function Sidebar() {
+  const { user, logout } = useAuth();
+  const initial = user?.username?.[0]?.toUpperCase() ?? "?";
+
   return (
     <aside className="flex h-full w-60 shrink-0 flex-col border-r border-border bg-surface">
       <div className="flex h-14 items-center gap-2 border-b border-border px-4">
@@ -41,12 +46,21 @@ export default function Sidebar() {
       <div className="border-t border-border p-3">
         <div className="flex items-center gap-2.5 rounded-md px-1 py-1">
           <div className="flex h-7 w-7 items-center justify-center rounded-full bg-accent-soft text-xs font-semibold text-accent">
-            P
+            {initial}
           </div>
-          <div className="min-w-0 leading-tight">
-            <p className="truncate text-xs font-medium text-text-primary">Pastor João</p>
-            <p className="truncate text-[11px] text-text-tertiary">Igreja Batista Central</p>
+          <div className="min-w-0 flex-1 leading-tight">
+            <p className="truncate text-xs font-medium text-text-primary">
+              {user?.username ?? "Convidado"}
+            </p>
+            <p className="truncate text-[11px] text-text-tertiary">{user?.email}</p>
           </div>
+          <button
+            onClick={logout}
+            aria-label="Sair"
+            className="flex h-6 w-6 items-center justify-center rounded-md text-text-tertiary hover:bg-surface-hover hover:text-text-primary"
+          >
+            <LogOut className="h-3.5 w-3.5" />
+          </button>
         </div>
       </div>
     </aside>

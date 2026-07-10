@@ -9,6 +9,7 @@ const TITLES: Record<string, { title: string; subtitle: string }> = {
   "/contatos": { title: "Contatos WhatsApp", subtitle: "Verifique e gerencie sua base de contatos" },
   "/mensagens": { title: "Mensagens", subtitle: "Conversas recebidas pelo WhatsApp" },
   "/agenda": { title: "Agenda", subtitle: "Visitas, aconselhamentos e reuniões" },
+  "/configuracoes": { title: "Configurações", subtitle: "Conexões e preferências da conta" },
 };
 
 export default function Topbar() {

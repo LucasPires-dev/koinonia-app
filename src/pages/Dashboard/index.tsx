@@ -4,7 +4,7 @@ import Card from "../../components/ui/Card";
 import Badge from "../../components/ui/Badge";
 import EmptyState from "../../components/ui/EmptyState";
 import { useContacts } from "../../hooks/useContacts";
-import { mockAppointments } from "../../mocks/appointments";
+import { useAppointments } from "../../hooks/useAppointments";
 import { formatRelative } from "../../utils/formatRelative";
 import { PRIORITY_TONE } from "../Contacts/badgeTones";
 
@@ -35,12 +35,13 @@ function MetricCard({
 
 export default function DashboardPage() {
   const { data: contacts } = useContacts();
+  const { data: appointments = [] } = useAppointments();
 
   const total = contacts?.length ?? 0;
   const verified = contacts?.filter((c) => c.whatsappVerification === "verificado").length ?? 0;
   const unread = contacts?.reduce((sum, c) => sum + c.naoLidas, 0) ?? 0;
   const urgent = contacts?.filter((c) => c.prioridade === "alta" && c.naoLidas > 0) ?? [];
-  const upcoming = [...mockAppointments]
+  const upcoming = [...appointments]
     .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
     .slice(0, 3);
 
@@ -55,7 +56,7 @@ export default function DashboardPage() {
         />
         <MetricCard icon={ShieldCheck} label="Verificados" value={verified} hint="Números confirmados no WhatsApp" />
         <MetricCard icon={MessageSquare} label="Mensagens não lidas" value={unread} hint="Aguardando sua resposta" />
-        <MetricCard icon={Calendar} label="Compromissos hoje" value={mockAppointments.length} hint="Na agenda pastoral" />
+        <MetricCard icon={Calendar} label="Compromissos hoje" value={appointments.length} hint="Na agenda pastoral" />
       </div>
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
