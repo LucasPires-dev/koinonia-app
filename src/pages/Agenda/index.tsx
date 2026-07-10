@@ -3,7 +3,8 @@ import { CalendarClock, CheckCircle2, ChevronLeft, ChevronRight, MapPin, User } 
 import Card from "../../components/ui/Card";
 import Badge from "../../components/ui/Badge";
 import EmptyState from "../../components/ui/EmptyState";
-import { mockAppointments } from "../../mocks/appointments";
+import { useAppointments } from "../../hooks/useAppointments";
+import type { Appointment } from "../../types/appointment";
 import { APPOINTMENT_TYPE_DOT, APPOINTMENT_TYPE_LABEL } from "../../types/appointment";
 import { PRIORITY_TONE } from "../Contacts/badgeTones";
 
@@ -18,17 +19,18 @@ function isSameDay(a: Date, b: Date) {
 }
 
 export default function AgendaPage() {
+  const { data: appointments = [], isLoading } = useAppointments();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(new Date());
 
   const appointmentsByDay = useMemo(() => {
-    const map = new Map<string, typeof mockAppointments>();
-    for (const appointment of mockAppointments) {
+    const map = new Map<string, Appointment[]>();
+    for (const appointment of appointments) {
       const key = new Date(appointment.date).toDateString();
       map.set(key, [...(map.get(key) ?? []), appointment]);
     }
     return map;
-  }, []);
+  }, [appointments]);
 
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth();
@@ -44,6 +46,10 @@ export default function AgendaPage() {
   const dayAppointments = (appointmentsByDay.get(selectedDate.toDateString()) ?? []).sort(
     (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
   );
+
+  if (isLoading) {
+    return <div className="p-5 text-sm text-text-tertiary">Carregando agenda...</div>;
+  }
 
   return (
     <div className="p-5">
