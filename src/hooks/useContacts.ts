@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import * as contactsService from "../services/mockContactsService";
+import * as contactsService from "../services/contactsService";
 import type { ContactDraft } from "../types/contact";
 
 const CONTACTS_KEY = ["contacts"] as const;
@@ -48,6 +48,14 @@ export function useDeleteContact() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: contactsService.deleteContact,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: CONTACTS_KEY }),
+  });
+}
+
+export function useSyncWhatsAppContacts() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: contactsService.syncWhatsAppContacts,
     onSuccess: () => queryClient.invalidateQueries({ queryKey: CONTACTS_KEY }),
   });
 }

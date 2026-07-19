@@ -184,13 +184,6 @@ export default function ContactDrawer({
             </div>
           </div>
 
-          {existing?.ultimaMensagem && (
-            <div className="rounded-md border border-border bg-surface p-3">
-              <p className="mb-1 text-xs font-medium text-text-tertiary">Última mensagem</p>
-              <p className="text-sm text-text-primary">{existing.ultimaMensagem}</p>
-            </div>
-          )}
-
           {existing && (
             <div className="grid grid-cols-2 gap-2 text-xs text-text-tertiary">
               <span>Criado em {formatDateTime(existing.criadoEm)}</span>

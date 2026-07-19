@@ -1,8 +1,17 @@
+import { useEffect } from "react";
 import { Outlet } from "react-router-dom";
 import Sidebar from "./Sidebar";
 import Topbar from "./Topbar";
+import { useSyncWhatsAppContacts } from "../hooks/useContacts";
 
 export default function AppShell() {
+  const syncWhatsAppContacts = useSyncWhatsAppContacts();
+  const { mutate: sync } = syncWhatsAppContacts;
+
+  useEffect(() => {
+    sync();
+  }, [sync]);
+
   return (
     <div className="flex h-screen bg-canvas text-text-primary">
       <Sidebar />
