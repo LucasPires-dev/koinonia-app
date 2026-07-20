@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { RefreshCw, Trash2, X } from "lucide-react";
 import Button from "../../components/ui/Button";
+import Badge from "../../components/ui/Badge";
+import Avatar from "../../components/ui/Avatar";
 import { Input, Label, Select, Textarea } from "../../components/ui/Field";
 import WhatsAppStatus from "./WhatsAppStatus";
 import {
@@ -91,9 +93,12 @@ export default function ContactDrawer({
       />
       <div className="relative flex h-full w-full max-w-md flex-col border-l border-border bg-canvas shadow-xl">
         <div className="flex items-center justify-between border-b border-border px-5 py-4">
-          <h2 className="text-sm font-semibold text-text-primary">
-            {isNew ? "Novo contato" : existing?.nome}
-          </h2>
+          <div className="flex items-center gap-2.5">
+            {existing && <Avatar src={existing.avatarUrl} name={existing.nome} />}
+            <h2 className="text-sm font-semibold text-text-primary">
+              {isNew ? "Novo contato" : existing?.nome}
+            </h2>
+          </div>
           <button
             onClick={onClose}
             className="flex h-7 w-7 items-center justify-center rounded-md text-text-tertiary hover:bg-surface-hover hover:text-text-primary"
@@ -115,6 +120,28 @@ export default function ContactDrawer({
               >
                 Verificar
               </Button>
+            </div>
+          )}
+
+          {existing && (existing.waName || (existing.gruposComuns && existing.gruposComuns.length > 0)) && (
+            <div className="space-y-1.5 rounded-md border border-border bg-surface px-3 py-2.5 text-xs">
+              {existing.waName && existing.waName !== existing.nome && (
+                <p className="text-text-secondary">
+                  Nome no WhatsApp: <span className="font-medium text-text-primary">{existing.waName}</span>
+                </p>
+              )}
+              {existing.gruposComuns && existing.gruposComuns.length > 0 && (
+                <div>
+                  <p className="mb-1 text-text-tertiary">Grupos em comum</p>
+                  <div className="flex flex-wrap gap-1">
+                    {existing.gruposComuns.map((grupo) => (
+                      <Badge key={grupo} tone="neutral">
+                        {grupo}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
@@ -183,13 +210,6 @@ export default function ContactDrawer({
               />
             </div>
           </div>
-
-          {existing?.ultimaMensagem && (
-            <div className="rounded-md border border-border bg-surface p-3">
-              <p className="mb-1 text-xs font-medium text-text-tertiary">Última mensagem</p>
-              <p className="text-sm text-text-primary">{existing.ultimaMensagem}</p>
-            </div>
-          )}
 
           {existing && (
             <div className="grid grid-cols-2 gap-2 text-xs text-text-tertiary">

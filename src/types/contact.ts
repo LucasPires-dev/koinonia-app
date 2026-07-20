@@ -28,6 +28,9 @@ export interface Contact {
   prioridade: Priority;
   whatsappVerification: WhatsAppVerification;
   ultimaVerificacaoEm?: string;
+  avatarUrl?: string | null;
+  waName?: string;
+  gruposComuns?: string[];
   ultimaMensagem?: string;
   ultimaMensagemEm?: string;
   naoLidas: number;

@@ -1,28 +1,28 @@
 import { useState, type FormEvent } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { Link, Navigate, useNavigate } from "react-router-dom";
 import { MessageCircle } from "lucide-react";
+import Card from "../../components/ui/Card";
 import Button from "../../components/ui/Button";
 import { Input, Label } from "../../components/ui/Field";
-import { useAuth } from "../../hooks/auth-context";
+import { useAuth } from "../../contexts/auth-context";
 
 export default function LoginPage() {
-  const { login } = useAuth();
+  const { isAuthenticated, login } = useAuth();
   const navigate = useNavigate();
-  const location = useLocation();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  const from = (location.state as { from?: string } | null)?.from ?? "/";
+  if (isAuthenticated) return <Navigate to="/" replace />;
 
-  async function handleSubmit(event: FormEvent) {
-    event.preventDefault();
+  async function handleSubmit(e: FormEvent) {
+    e.preventDefault();
     setError(null);
     setLoading(true);
     try {
       await login(username, password);
-      navigate(from, { replace: true });
+      navigate("/");
     } catch {
       setError("Usuário ou senha inválidos.");
     } finally {
@@ -32,7 +32,7 @@ export default function LoginPage() {
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-canvas px-4">
-      <div className="w-full max-w-sm rounded-lg border border-border bg-surface-raised p-6">
+      <Card className="w-full max-w-sm p-6">
         <div className="mb-6 flex items-center gap-2">
           <div className="flex h-7 w-7 items-center justify-center rounded-md bg-accent text-white">
             <MessageCircle className="h-4 w-4" />
@@ -41,26 +41,16 @@ export default function LoginPage() {
         </div>
 
         <h1 className="mb-1 text-lg font-semibold text-text-primary">Entrar</h1>
-        <p className="mb-5 text-sm text-text-tertiary">Acesse sua conta para continuar</p>
+        <p className="mb-5 text-sm text-text-tertiary">Acesse sua conta para gerenciar seus contatos.</p>
 
-        <form onSubmit={handleSubmit} className="space-y-3">
+        <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <Label>Usuário</Label>
-            <Input
-              value={username}
-              onChange={(event) => setUsername(event.target.value)}
-              required
-              autoFocus
-            />
+            <Label required>Usuário</Label>
+            <Input value={username} onChange={(e) => setUsername(e.target.value)} autoFocus />
           </div>
           <div>
-            <Label>Senha</Label>
-            <Input
-              type="password"
-              value={password}
-              onChange={(event) => setPassword(event.target.value)}
-              required
-            />
+            <Label required>Senha</Label>
+            <Input type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
           </div>
 
           {error && <p className="text-xs text-danger">{error}</p>}
@@ -69,7 +59,14 @@ export default function LoginPage() {
             Entrar
           </Button>
         </form>
-      </div>
+
+        <p className="mt-5 text-center text-xs text-text-tertiary">
+          Não tem conta?{" "}
+          <Link to="/registrar" className="font-medium text-accent hover:underline">
+            Criar conta
+          </Link>
+        </p>
+      </Card>
     </div>
   );
 }

@@ -1,10 +1,12 @@
 import { useMemo, useState } from "react";
-import { CalendarClock, CheckCircle2, ChevronLeft, ChevronRight, MapPin, User } from "lucide-react";
+import { Link } from "react-router-dom";
+import { CalendarClock, CalendarOff, CheckCircle2, ChevronLeft, ChevronRight, MapPin, User } from "lucide-react";
 import Card from "../../components/ui/Card";
 import Badge from "../../components/ui/Badge";
+import Button from "../../components/ui/Button";
 import EmptyState from "../../components/ui/EmptyState";
-import { useAppointments } from "../../hooks/useAppointments";
-import type { Appointment } from "../../types/appointment";
+import { useEvents } from "../../hooks/useAgenda";
+import { useIntegration } from "../../hooks/useIntegration";
 import { APPOINTMENT_TYPE_DOT, APPOINTMENT_TYPE_LABEL } from "../../types/appointment";
 import { PRIORITY_TONE } from "../Contacts/badgeTones";
 
@@ -19,24 +21,31 @@ function isSameDay(a: Date, b: Date) {
 }
 
 export default function AgendaPage() {
-  const { data: appointments = [], isLoading } = useAppointments();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(new Date());
 
-  const appointmentsByDay = useMemo(() => {
-    const map = new Map<string, Appointment[]>();
-    for (const appointment of appointments) {
-      const key = new Date(appointment.date).toDateString();
-      map.set(key, [...(map.get(key) ?? []), appointment]);
-    }
-    return map;
-  }, [appointments]);
+  const { data: integration } = useIntegration();
+  const googleConfigured = integration?.googleConfigured ?? false;
 
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth();
   const firstDay = new Date(year, month, 1);
   const daysInMonth = new Date(year, month + 1, 0).getDate();
   const startOffset = firstDay.getDay();
+
+  const monthRangeStart = new Date(year, month, 1 - startOffset);
+  const monthRangeEnd = new Date(year, month + 1, 1);
+
+  const { data: appointments, isLoading } = useEvents(monthRangeStart, monthRangeEnd, googleConfigured);
+
+  const appointmentsByDay = useMemo(() => {
+    const map = new Map<string, NonNullable<typeof appointments>>();
+    for (const appointment of appointments ?? []) {
+      const key = new Date(appointment.date).toDateString();
+      map.set(key, [...(map.get(key) ?? []), appointment]);
+    }
+    return map;
+  }, [appointments]);
 
   const cells: Array<{ date: Date } | null> = [
     ...Array.from({ length: startOffset }, () => null),
@@ -46,10 +55,6 @@ export default function AgendaPage() {
   const dayAppointments = (appointmentsByDay.get(selectedDate.toDateString()) ?? []).sort(
     (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
   );
-
-  if (isLoading) {
-    return <div className="p-5 text-sm text-text-tertiary">Carregando agenda...</div>;
-  }
 
   return (
     <div className="p-5">
@@ -147,7 +152,22 @@ export default function AgendaPage() {
             </p>
           </Card>
 
-          {dayAppointments.length === 0 ? (
+          {!googleConfigured ? (
+            <EmptyState
+              icon={CalendarOff}
+              title="Google Agenda não conectada"
+              description="Conecte sua conta do Google em Integrações para ver e criar compromissos aqui."
+              action={
+                <Link to="/integracoes">
+                  <Button size="sm" variant="primary">
+                    Ir para Integrações
+                  </Button>
+                </Link>
+              }
+            />
+          ) : isLoading ? (
+            <p className="p-4 text-sm text-text-tertiary">Carregando compromissos…</p>
+          ) : dayAppointments.length === 0 ? (
             <EmptyState icon={CalendarClock} title="Nada por aqui" description="Nenhum compromisso agendado para esta data." />
           ) : (
             <div className="space-y-3">
