@@ -19,3 +19,14 @@ export function useSendMessage(contactId: string) {
     },
   });
 }
+
+export function useSendAudioMessage(contactId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (blob: Blob) => messagesService.sendAudioMessage(contactId, blob),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["messages", contactId] });
+      queryClient.invalidateQueries({ queryKey: ["contacts"] });
+    },
+  });
+}

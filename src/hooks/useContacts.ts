@@ -8,6 +8,7 @@ export function useContacts() {
   return useQuery({
     queryKey: CONTACTS_KEY,
     queryFn: contactsService.fetchContacts,
+    refetchInterval: 8000,
   });
 }
 

@@ -1,11 +1,14 @@
 import { useEffect, useState } from "react";
-import { Check, Loader2, RefreshCw } from "lucide-react";
+import { useSearchParams } from "react-router-dom";
+import { Calendar, Check, Loader2, RefreshCw } from "lucide-react";
 import Card from "../../components/ui/Card";
 import Button from "../../components/ui/Button";
 import { Input, Label } from "../../components/ui/Field";
 import Badge from "../../components/ui/Badge";
 import {
+  useConnectGoogle,
   useConnectWhatsApp,
+  useDisconnectGoogle,
   useIntegration,
   useSaveIntegration,
   useWhatsAppStatus,
@@ -33,6 +36,10 @@ export default function IntegrationsPage() {
   const { data: integration, isLoading } = useIntegration();
   const saveIntegration = useSaveIntegration();
   const connectWhatsApp = useConnectWhatsApp();
+  const connectGoogle = useConnectGoogle();
+  const disconnectGoogle = useDisconnectGoogle();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const googleRedirect = searchParams.get("google");
 
   const [baseUrl, setBaseUrl] = useState("");
   const [uazToken, setUazToken] = useState("");
@@ -45,6 +52,15 @@ export default function IntegrationsPage() {
   useEffect(() => {
     setBaseUrl(integration?.uazapiBaseUrl ?? "");
   }, [integration?.uazapiBaseUrl]);
+
+  useEffect(() => {
+    if (!googleRedirect) return;
+    const timer = setTimeout(() => {
+      searchParams.delete("google");
+      setSearchParams(searchParams, { replace: true });
+    }, 4000);
+    return () => clearTimeout(timer);
+  }, [googleRedirect, searchParams, setSearchParams]);
 
   async function handleSaveWhatsApp() {
     await saveIntegration.mutateAsync({ uazapiBaseUrl: baseUrl, uazapiToken: uazToken || undefined });
@@ -120,6 +136,61 @@ export default function IntegrationsPage() {
                 Escaneie com o WhatsApp do número que vai atender pelo app.
               </p>
             </div>
+          )}
+        </div>
+      </Card>
+
+      <Card className="p-5">
+        <div className="mb-4 flex items-center justify-between">
+          <h2 className="text-sm font-semibold text-text-primary">Google Agenda</h2>
+          {integration?.googleConfigured ? (
+            <Badge tone="success" icon={<Check className="h-3 w-3" />}>
+              Conectado
+            </Badge>
+          ) : (
+            <Badge tone="neutral">Desconectado</Badge>
+          )}
+        </div>
+
+        {googleRedirect === "connected" && (
+          <p className="mb-3 rounded-md bg-success-soft px-3 py-2 text-xs text-success">
+            Google Agenda conectada com sucesso!
+          </p>
+        )}
+        {googleRedirect === "error" && (
+          <p className="mb-3 rounded-md bg-danger-soft px-3 py-2 text-xs text-danger">
+            Não foi possível conectar com o Google. Tente novamente.
+          </p>
+        )}
+
+        <div className="space-y-3">
+          <p className="text-xs text-text-tertiary">
+            Sincronize visitas, aconselhamentos e reuniões diretamente com a sua Google Agenda.
+          </p>
+          {integration?.googleConfigured && integration.googleEmail && (
+            <p className="text-xs text-text-secondary">
+              Conta conectada: <span className="font-medium text-text-primary">{integration.googleEmail}</span>
+            </p>
+          )}
+          {integration?.googleConfigured ? (
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => disconnectGoogle.mutate()}
+              loading={disconnectGoogle.isPending}
+            >
+              Desconectar
+            </Button>
+          ) : (
+            <Button
+              variant="primary"
+              size="sm"
+              icon={<Calendar className="h-3.5 w-3.5" />}
+              onClick={() => connectGoogle.mutate()}
+              loading={connectGoogle.isPending}
+            >
+              Conectar Google Agenda
+            </Button>
           )}
         </div>
       </Card>

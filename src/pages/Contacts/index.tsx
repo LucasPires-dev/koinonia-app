@@ -22,6 +22,7 @@ import Badge from "../../components/ui/Badge";
 import Card from "../../components/ui/Card";
 import { Input, Select } from "../../components/ui/Field";
 import EmptyState from "../../components/ui/EmptyState";
+import Avatar from "../../components/ui/Avatar";
 import WhatsAppStatus from "./WhatsAppStatus";
 import ContactDrawer from "./ContactDrawer";
 import { STATUS_TONE, PRIORITY_TONE } from "./badgeTones";
@@ -95,16 +96,19 @@ export default function ContactsPage() {
       columnHelper.accessor("nome", {
         header: "Contato",
         cell: ({ row }) => (
-          <div>
-            <div className="flex items-center gap-1.5">
-              <span className="text-sm font-medium text-text-primary">{row.original.nome}</span>
-              {row.original.naoLidas > 0 && (
-                <span className="flex h-4 min-w-4 items-center justify-center rounded-full bg-accent px-1 text-[10px] font-semibold text-white">
-                  {row.original.naoLidas}
-                </span>
-              )}
+          <div className="flex items-center gap-2.5">
+            <Avatar src={row.original.avatarUrl} name={row.original.nome} size="sm" />
+            <div>
+              <div className="flex items-center gap-1.5">
+                <span className="text-sm font-medium text-text-primary">{row.original.nome}</span>
+                {row.original.naoLidas > 0 && (
+                  <span className="flex h-4 min-w-4 items-center justify-center rounded-full bg-accent px-1 text-[10px] font-semibold text-white">
+                    {row.original.naoLidas}
+                  </span>
+                )}
+              </div>
+              <span className="text-xs text-text-tertiary">{row.original.telefone}</span>
             </div>
-            <span className="text-xs text-text-tertiary">{row.original.telefone}</span>
           </div>
         ),
       }),

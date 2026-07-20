@@ -19,3 +19,11 @@ export async function fetchWhatsAppStatus(): Promise<WhatsAppStatus> {
 export async function connectWhatsApp(): Promise<{ qrCode: string; status: string }> {
   return apiFetch("/integrations/whatsapp/connect/", { method: "POST" });
 }
+
+export async function fetchGoogleAuthUrl(): Promise<{ url: string }> {
+  return apiFetch("/integrations/google/connect/");
+}
+
+export async function disconnectGoogle(): Promise<void> {
+  await apiFetch("/integrations/google/disconnect/", { method: "POST" });
+}

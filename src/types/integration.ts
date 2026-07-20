@@ -3,6 +3,9 @@ export interface IntegrationSettings {
   uazapiConfigured: boolean;
   openaiConfigured: boolean;
   whatsappConnectedAt: string | null;
+  googleConfigured: boolean;
+  googleEmail: string;
+  googleConnectedAt: string | null;
 }
 
 export type WhatsAppConnectionStatus = "connected" | "connecting" | "disconnected";

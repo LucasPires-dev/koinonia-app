@@ -32,3 +32,20 @@ export function useConnectWhatsApp() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: WHATSAPP_STATUS_KEY }),
   });
 }
+
+export function useConnectGoogle() {
+  return useMutation({
+    mutationFn: async () => {
+      const { url } = await integrationsService.fetchGoogleAuthUrl();
+      window.location.assign(url);
+    },
+  });
+}
+
+export function useDisconnectGoogle() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: integrationsService.disconnectGoogle,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: INTEGRATION_KEY }),
+  });
+}
