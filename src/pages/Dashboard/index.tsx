@@ -3,35 +3,11 @@ import { Link } from "react-router-dom";
 import Card from "../../components/ui/Card";
 import Badge from "../../components/ui/Badge";
 import EmptyState from "../../components/ui/EmptyState";
+import MetricCard from "../../components/ui/MetricCard";
 import { useContacts } from "../../hooks/useContacts";
 import { mockAppointments } from "../../mocks/appointments";
 import { formatRelative } from "../../utils/formatRelative";
 import { PRIORITY_TONE } from "../Contacts/badgeTones";
-
-function MetricCard({
-  icon: Icon,
-  label,
-  value,
-  hint,
-}: {
-  icon: typeof Users;
-  label: string;
-  value: string | number;
-  hint: string;
-}) {
-  return (
-    <Card className="p-4">
-      <div className="mb-3 flex items-center justify-between">
-        <span className="flex h-8 w-8 items-center justify-center rounded-md bg-accent-soft text-accent">
-          <Icon className="h-4 w-4" />
-        </span>
-      </div>
-      <p className="text-2xl font-semibold text-text-primary">{value}</p>
-      <p className="text-xs text-text-tertiary">{label}</p>
-      <p className="mt-2 text-[11px] text-text-tertiary">{hint}</p>
-    </Card>
-  );
-}
 
 export default function DashboardPage() {
   const { data: contacts } = useContacts();
