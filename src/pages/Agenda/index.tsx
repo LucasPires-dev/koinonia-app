@@ -1,12 +1,20 @@
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { CalendarClock, CalendarOff, CheckCircle2, ChevronLeft, ChevronRight, MapPin, User } from "lucide-react";
+import {
+  CalendarClock,
+  CalendarOff,
+  CheckCircle2,
+  ChevronLeft,
+  ChevronRight,
+  MapPin,
+  User,
+} from "lucide-react";
 import Card from "../../components/ui/Card";
 import Badge from "../../components/ui/Badge";
 import Button from "../../components/ui/Button";
 import EmptyState from "../../components/ui/EmptyState";
 import { useEvents } from "../../hooks/useAgenda";
-import { useIntegration } from "../../hooks/useIntegration";
+import { useIntegration, useShepherdsToolkitCalendar } from "../../hooks/useIntegration";
 import { APPOINTMENT_TYPE_DOT, APPOINTMENT_TYPE_LABEL } from "../../types/appointment";
 import { PRIORITY_TONE } from "../Contacts/badgeTones";
 
@@ -26,6 +34,9 @@ export default function AgendaPage() {
 
   const { data: integration } = useIntegration();
   const googleConfigured = integration?.googleConfigured ?? false;
+  const shepherdsToolkitConfigured = integration?.shepherdsToolkitConfigured ?? false;
+  const { data: shepherdsToolkitEvents, isLoading: isLoadingShepherdsToolkitEvents } =
+    useShepherdsToolkitCalendar(shepherdsToolkitConfigured);
 
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth();
@@ -200,6 +211,51 @@ export default function AgendaPage() {
           )}
         </div>
       </div>
+
+      <Card className="mt-4 p-5">
+        <div className="mb-4 flex items-center justify-between">
+          <h3 className="text-sm font-semibold text-text-primary">Agenda do Shepherd's Toolkit</h3>
+          {shepherdsToolkitConfigured && <Badge tone="neutral">Somente leitura</Badge>}
+        </div>
+
+        {!shepherdsToolkitConfigured ? (
+          <EmptyState
+            icon={CalendarOff}
+            title="Shepherd's Toolkit não conectado"
+            description="Conecte sua conta do Shepherd's Toolkit em Integrações para ver seus eventos aqui."
+            action={
+              <Link to="/integracoes">
+                <Button size="sm" variant="primary">
+                  Ir para Integrações
+                </Button>
+              </Link>
+            }
+          />
+        ) : isLoadingShepherdsToolkitEvents ? (
+          <p className="p-4 text-sm text-text-tertiary">Carregando eventos…</p>
+        ) : !shepherdsToolkitEvents?.length ? (
+          <EmptyState icon={CalendarClock} title="Nada por aqui" description="Nenhum evento próximo no Shepherd's Toolkit." />
+        ) : (
+          <div className="space-y-2">
+            {shepherdsToolkitEvents.map((event) => (
+              <div key={event.id} className="rounded-md border border-border p-3">
+                <div className="flex items-center justify-between">
+                  <h4 className="text-sm font-medium text-text-primary">{event.title}</h4>
+                  <span className="text-xs text-text-tertiary">
+                    {new Date(event.startDatetime).toLocaleString("pt-BR", {
+                      day: "2-digit",
+                      month: "2-digit",
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
+                  </span>
+                </div>
+                {event.location && <p className="mt-1 text-xs text-text-secondary">{event.location}</p>}
+              </div>
+            ))}
+          </div>
+        )}
+      </Card>
     </div>
   );
 }

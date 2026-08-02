@@ -49,3 +49,36 @@ export function useDisconnectGoogle() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: INTEGRATION_KEY }),
   });
 }
+
+export function useConnectShepherdsToolkit() {
+  return useMutation({
+    mutationFn: async () => {
+      const { url } = await integrationsService.fetchShepherdsToolkitAuthUrl();
+      window.location.assign(url);
+    },
+  });
+}
+
+export function useDisconnectShepherdsToolkit() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: integrationsService.disconnectShepherdsToolkit,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: INTEGRATION_KEY }),
+  });
+}
+
+export function useShepherdsToolkitCalendar(enabled: boolean) {
+  return useQuery({
+    queryKey: ["shepherds-toolkit-calendar"],
+    queryFn: integrationsService.fetchShepherdsToolkitCalendar,
+    enabled,
+  });
+}
+
+export function useShepherdsToolkitWritings(enabled: boolean) {
+  return useQuery({
+    queryKey: ["shepherds-toolkit-writings"],
+    queryFn: integrationsService.fetchShepherdsToolkitWritings,
+    enabled,
+  });
+}

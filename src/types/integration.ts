@@ -6,6 +6,9 @@ export interface IntegrationSettings {
   googleConfigured: boolean;
   googleEmail: string;
   googleConnectedAt: string | null;
+  shepherdsToolkitConfigured: boolean;
+  shepherdsToolkitEmail: string;
+  shepherdsToolkitConnectedAt: string | null;
 }
 
 export type WhatsAppConnectionStatus = "connected" | "connecting" | "disconnected";
