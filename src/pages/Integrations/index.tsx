@@ -1,14 +1,16 @@
 import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import { Calendar, Check, Loader2, RefreshCw } from "lucide-react";
+import { BookOpen, Calendar, Check, Loader2, RefreshCw } from "lucide-react";
 import Card from "../../components/ui/Card";
 import Button from "../../components/ui/Button";
 import { Input, Label } from "../../components/ui/Field";
 import Badge from "../../components/ui/Badge";
 import {
   useConnectGoogle,
+  useConnectShepherdsToolkit,
   useConnectWhatsApp,
   useDisconnectGoogle,
+  useDisconnectShepherdsToolkit,
   useIntegration,
   useSaveIntegration,
   useWhatsAppStatus,
@@ -38,8 +40,11 @@ export default function IntegrationsPage() {
   const connectWhatsApp = useConnectWhatsApp();
   const connectGoogle = useConnectGoogle();
   const disconnectGoogle = useDisconnectGoogle();
+  const connectShepherdsToolkit = useConnectShepherdsToolkit();
+  const disconnectShepherdsToolkit = useDisconnectShepherdsToolkit();
   const [searchParams, setSearchParams] = useSearchParams();
   const googleRedirect = searchParams.get("google");
+  const shepherdsToolkitRedirect = searchParams.get("shepherds_toolkit");
 
   const [baseUrl, setBaseUrl] = useState("");
   const [uazToken, setUazToken] = useState("");
@@ -61,6 +66,15 @@ export default function IntegrationsPage() {
     }, 4000);
     return () => clearTimeout(timer);
   }, [googleRedirect, searchParams, setSearchParams]);
+
+  useEffect(() => {
+    if (!shepherdsToolkitRedirect) return;
+    const timer = setTimeout(() => {
+      searchParams.delete("shepherds_toolkit");
+      setSearchParams(searchParams, { replace: true });
+    }, 4000);
+    return () => clearTimeout(timer);
+  }, [shepherdsToolkitRedirect, searchParams, setSearchParams]);
 
   async function handleSaveWhatsApp() {
     await saveIntegration.mutateAsync({ uazapiBaseUrl: baseUrl, uazapiToken: uazToken || undefined });
@@ -190,6 +204,63 @@ export default function IntegrationsPage() {
               loading={connectGoogle.isPending}
             >
               Conectar Google Agenda
+            </Button>
+          )}
+        </div>
+      </Card>
+
+      <Card className="p-5">
+        <div className="mb-4 flex items-center justify-between">
+          <h2 className="text-sm font-semibold text-text-primary">Shepherd's Toolkit</h2>
+          {integration?.shepherdsToolkitConfigured ? (
+            <Badge tone="success" icon={<Check className="h-3 w-3" />}>
+              Conectado
+            </Badge>
+          ) : (
+            <Badge tone="neutral">Desconectado</Badge>
+          )}
+        </div>
+
+        {shepherdsToolkitRedirect === "connected" && (
+          <p className="mb-3 rounded-md bg-success-soft px-3 py-2 text-xs text-success">
+            Shepherd's Toolkit conectado com sucesso!
+          </p>
+        )}
+        {shepherdsToolkitRedirect === "error" && (
+          <p className="mb-3 rounded-md bg-danger-soft px-3 py-2 text-xs text-danger">
+            Não foi possível conectar com o Shepherd's Toolkit. Tente novamente.
+          </p>
+        )}
+
+        <div className="space-y-3">
+          <p className="text-xs text-text-tertiary">
+            Traga sua Agenda e seus Escritos do Shepherd's Toolkit pra dentro do Koinonia (somente leitura). O login
+            acontece direto no Shepherd's Toolkit — sua senha nunca passa por aqui.
+          </p>
+          {integration?.shepherdsToolkitConfigured && integration.shepherdsToolkitEmail && (
+            <p className="text-xs text-text-secondary">
+              Conta conectada:{" "}
+              <span className="font-medium text-text-primary">{integration.shepherdsToolkitEmail}</span>
+            </p>
+          )}
+          {integration?.shepherdsToolkitConfigured ? (
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => disconnectShepherdsToolkit.mutate()}
+              loading={disconnectShepherdsToolkit.isPending}
+            >
+              Desconectar
+            </Button>
+          ) : (
+            <Button
+              variant="primary"
+              size="sm"
+              icon={<BookOpen className="h-3.5 w-3.5" />}
+              onClick={() => connectShepherdsToolkit.mutate()}
+              loading={connectShepherdsToolkit.isPending}
+            >
+              Conectar Shepherd's Toolkit
             </Button>
           )}
         </div>

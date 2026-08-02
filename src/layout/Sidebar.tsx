@@ -9,6 +9,7 @@ import {
   Plug,
   LogOut,
   ChevronDown,
+  BookOpen,
 } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
 import { useAuth } from "../contexts/auth-context";
@@ -31,6 +32,7 @@ const NAV_ITEMS: Array<LinkItem | GroupItem> = [
   { to: "/contatos", label: "Contatos WhatsApp", icon: Users },
   { to: "/mensagens", label: "Mensagens", icon: MessageSquare },
   { to: "/agenda", label: "Agenda", icon: Calendar },
+  { to: "/escritos", label: "Escritos", icon: BookOpen },
   {
     label: "Agendamentos",
     icon: CalendarClock,

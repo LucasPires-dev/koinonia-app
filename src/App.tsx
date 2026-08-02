@@ -4,6 +4,7 @@ import DashboardPage from "./pages/Dashboard";
 import ContactsPage from "./pages/Contacts";
 import MessagesPage from "./pages/Messages";
 import AgendaPage from "./pages/Agenda";
+import WritingsPage from "./pages/Writings";
 import AgendamentosOverviewPage from "./pages/Agendamentos/Overview";
 import AgendamentosCalendarPage from "./pages/Agendamentos/Calendar";
 import IntegrationsPage from "./pages/Integrations";
@@ -27,6 +28,7 @@ export default function App() {
         <Route path="contatos" element={<ContactsPage />} />
         <Route path="mensagens" element={<MessagesPage />} />
         <Route path="agenda" element={<AgendaPage />} />
+        <Route path="escritos" element={<WritingsPage />} />
         <Route path="agendamentos" element={<AgendamentosOverviewPage />} />
         <Route path="agendamentos/calendario" element={<AgendamentosCalendarPage />} />
         <Route path="integracoes" element={<IntegrationsPage />} />
