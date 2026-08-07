@@ -1,3 +1,5 @@
+import { useState } from "react";
+
 export default function Avatar({
   src,
   name,
@@ -9,14 +11,16 @@ export default function Avatar({
   size?: "sm" | "md" | "lg";
   className?: string;
 }) {
+  const [failed, setFailed] = useState(false);
   const sizeClasses = { sm: "h-7 w-7 text-xs", md: "h-9 w-9 text-sm", lg: "h-14 w-14 text-lg" }[size];
 
-  if (src) {
+  if (src && !failed) {
     return (
       <img
         src={src}
         alt={name}
         className={`shrink-0 rounded-full object-cover ${sizeClasses} ${className}`}
+        onError={() => setFailed(true)}
       />
     );
   }
