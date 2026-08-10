@@ -2,6 +2,7 @@ import { Navigate, Route, Routes } from "react-router-dom";
 import AppShell from "./layout/AppShell";
 import DashboardPage from "./pages/Dashboard";
 import ContactsPage from "./pages/Contacts";
+import GroupsPage from "./pages/Groups";
 import MessagesPage from "./pages/Messages";
 import AgendaPage from "./pages/Agenda";
 import WritingsPage from "./pages/Writings";
@@ -26,6 +27,7 @@ export default function App() {
       >
         <Route index element={<DashboardPage />} />
         <Route path="contatos" element={<ContactsPage />} />
+        <Route path="grupos" element={<GroupsPage />} />
         <Route path="mensagens" element={<MessagesPage />} />
         <Route path="agenda" element={<AgendaPage />} />
         <Route path="escritos" element={<WritingsPage />} />

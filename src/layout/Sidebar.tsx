@@ -10,6 +10,7 @@ import {
   LogOut,
   ChevronDown,
   BookOpen,
+  UsersRound,
 } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
 import { useAuth } from "../contexts/auth-context";
@@ -30,6 +31,7 @@ interface GroupItem {
 const NAV_ITEMS: Array<LinkItem | GroupItem> = [
   { to: "/", label: "Visão geral", icon: LayoutDashboard, end: true },
   { to: "/contatos", label: "Contatos WhatsApp", icon: Users },
+  { to: "/grupos", label: "Grupos WhatsApp", icon: UsersRound },
   { to: "/mensagens", label: "Mensagens", icon: MessageSquare },
   { to: "/agenda", label: "Agenda", icon: Calendar },
   { to: "/escritos", label: "Escritos", icon: BookOpen },
