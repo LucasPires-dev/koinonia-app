@@ -3,7 +3,9 @@ import { Download, FileText, Mic, Send, Square, X } from "lucide-react";
 import Button from "../../components/ui/Button";
 import { Input } from "../../components/ui/Field";
 import { useMessages, useSendAudioMessage, useSendMessage } from "../../hooks/useMessages";
+import { useGroupMessages, useSendGroupMessage } from "../../hooks/useGroups";
 import type { Message } from "../../types/message";
+import type { WhatsAppGroup } from "../../types/group";
 
 function formatTime(iso: string) {
   return new Date(iso).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
@@ -94,14 +96,29 @@ function useAudioRecorder(onDone: (blob: Blob) => void) {
   return { recording, start, stop };
 }
 
-export default function ChatThread({ contactId }: { contactId: string }) {
-  const { data: messages, isLoading, error } = useMessages(contactId);
-  const sendMessage = useSendMessage(contactId);
-  const sendAudio = useSendAudioMessage(contactId);
+function ThreadView({
+  messages,
+  isLoading,
+  error,
+  sending,
+  allowAudio = false,
+  audioSending = false,
+  onSend,
+  onSendAudio,
+}: {
+  messages: Message[] | undefined;
+  isLoading: boolean;
+  error: unknown;
+  sending: boolean;
+  allowAudio?: boolean;
+  audioSending?: boolean;
+  onSend: (content: string) => Promise<unknown>;
+  onSendAudio?: (blob: Blob) => void;
+}) {
   const [text, setText] = useState("");
   const [lightbox, setLightbox] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
-  const recorder = useAudioRecorder((blob) => sendAudio.mutate(blob));
+  const recorder = useAudioRecorder((blob) => onSendAudio?.(blob));
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight });
@@ -112,14 +129,14 @@ export default function ChatThread({ contactId }: { contactId: string }) {
     const content = text.trim();
     if (!content) return;
     setText("");
-    await sendMessage.mutateAsync(content);
+    await onSend(content);
   }
 
   return (
     <div className="flex h-full flex-col">
       <div ref={scrollRef} className="flex-1 space-y-2 overflow-y-auto p-4">
         {isLoading && <p className="text-xs text-text-tertiary">Carregando mensagens…</p>}
-        {error && (
+        {error != null && (
           <p className="text-xs text-danger">
             {error instanceof Error ? error.message : "Não foi possível carregar as mensagens."}
           </p>
@@ -171,27 +188,29 @@ export default function ChatThread({ contactId }: { contactId: string }) {
           className="flex-1"
           disabled={recorder.recording}
         />
-        <Button
-          type="button"
-          size="sm"
-          variant={recorder.recording ? "danger" : "ghost"}
-          icon={
-            recorder.recording ? (
-              <Square className="h-3.5 w-3.5" />
-            ) : (
-              <Mic className="h-3.5 w-3.5" />
-            )
-          }
-          loading={sendAudio.isPending}
-          onClick={() => (recorder.recording ? recorder.stop() : recorder.start())}
-          aria-label={recorder.recording ? "Parar gravação" : "Gravar áudio"}
-        />
+        {allowAudio && (
+          <Button
+            type="button"
+            size="sm"
+            variant={recorder.recording ? "danger" : "ghost"}
+            icon={
+              recorder.recording ? (
+                <Square className="h-3.5 w-3.5" />
+              ) : (
+                <Mic className="h-3.5 w-3.5" />
+              )
+            }
+            loading={audioSending}
+            onClick={() => (recorder.recording ? recorder.stop() : recorder.start())}
+            aria-label={recorder.recording ? "Parar gravação" : "Gravar áudio"}
+          />
+        )}
         <Button
           type="submit"
           size="sm"
           variant="primary"
           icon={<Send className="h-3.5 w-3.5" />}
-          loading={sendMessage.isPending}
+          loading={sending}
           disabled={!text.trim() || recorder.recording}
           aria-label="Enviar mensagem"
         />
@@ -214,4 +233,85 @@ export default function ChatThread({ contactId }: { contactId: string }) {
       )}
     </div>
   );
+}
+
+function ContactChatThread({ contactId }: { contactId: string }) {
+  const { data: messages, isLoading, error } = useMessages(contactId);
+  const sendMessage = useSendMessage(contactId);
+  const sendAudio = useSendAudioMessage(contactId);
+
+  return (
+    <ThreadView
+      messages={messages}
+      isLoading={isLoading}
+      error={error}
+      sending={sendMessage.isPending}
+      allowAudio
+      audioSending={sendAudio.isPending}
+      onSend={(content) => sendMessage.mutateAsync(content)}
+      onSendAudio={(blob) => sendAudio.mutate(blob)}
+    />
+  );
+}
+
+function GroupChatThread({
+  groupId,
+  jid,
+  nome,
+  avatarUrl,
+  participantes,
+  onGroupCreated,
+}: {
+  groupId?: string;
+  jid: string;
+  nome?: string;
+  avatarUrl?: string;
+  participantes?: number;
+  onGroupCreated?: (group: WhatsAppGroup) => void;
+}) {
+  const { data: messages, isLoading, error } = useGroupMessages(groupId);
+  const sendGroupMessage = useSendGroupMessage();
+
+  async function handleSend(content: string) {
+    const result = await sendGroupMessage.mutateAsync({ jid, content, nome, avatarUrl, participantes });
+    if (!groupId) onGroupCreated?.(result.group);
+  }
+
+  return (
+    <ThreadView
+      messages={groupId ? messages : []}
+      isLoading={groupId ? isLoading : false}
+      error={error}
+      sending={sendGroupMessage.isPending}
+      onSend={handleSend}
+    />
+  );
+}
+
+type ChatThreadProps =
+  | { kind: "contact"; contactId: string }
+  | {
+      kind: "group";
+      groupId?: string;
+      jid: string;
+      nome?: string;
+      avatarUrl?: string;
+      participantes?: number;
+      onGroupCreated?: (group: WhatsAppGroup) => void;
+    };
+
+export default function ChatThread(props: ChatThreadProps) {
+  if (props.kind === "group") {
+    return (
+      <GroupChatThread
+        groupId={props.groupId}
+        jid={props.jid}
+        nome={props.nome}
+        avatarUrl={props.avatarUrl}
+        participantes={props.participantes}
+        onGroupCreated={props.onGroupCreated}
+      />
+    );
+  }
+  return <ContactChatThread contactId={props.contactId} />;
 }

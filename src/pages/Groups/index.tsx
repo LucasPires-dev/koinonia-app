@@ -1,14 +1,60 @@
-import { useMemo, useState } from "react";
-import { RefreshCw, Search, Users } from "lucide-react";
+import { useMemo, useState, type FormEvent } from "react";
+import { MessageCircle, RefreshCw, Search, Send, Users, X } from "lucide-react";
 import Card from "../../components/ui/Card";
+import Button from "../../components/ui/Button";
 import { Input } from "../../components/ui/Field";
 import EmptyState from "../../components/ui/EmptyState";
 import Avatar from "../../components/ui/Avatar";
-import { useWhatsAppGroups } from "../../hooks/useGroups";
+import { useWhatsAppGroups, useSendGroupMessage } from "../../hooks/useGroups";
+import type { WhatsAppGroup } from "../../types/group";
+
+function SendMessageRow({ group, onClose }: { group: WhatsAppGroup; onClose: () => void }) {
+  const [text, setText] = useState("");
+  const sendGroupMessage = useSendGroupMessage();
+
+  async function handleSubmit(e: FormEvent) {
+    e.preventDefault();
+    const content = text.trim();
+    if (!content) return;
+    await sendGroupMessage.mutateAsync({
+      jid: group.jid,
+      content,
+      nome: group.nome,
+      avatarUrl: group.avatarUrl,
+      participantes: group.participantes,
+    });
+    setText("");
+    onClose();
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="flex items-center gap-2 px-4 pb-3">
+      <Input
+        autoFocus
+        value={text}
+        onChange={(e) => setText(e.target.value)}
+        onKeyDown={(e) => e.key === "Escape" && onClose()}
+        placeholder={`Mensagem para ${group.nome || "o grupo"}…`}
+        className="flex-1"
+      />
+      <Button
+        type="submit"
+        size="sm"
+        variant="primary"
+        icon={<Send className="h-3.5 w-3.5" />}
+        loading={sendGroupMessage.isPending}
+        disabled={!text.trim()}
+        aria-label="Enviar"
+      />
+      <Button type="button" size="sm" variant="ghost" icon={<X className="h-3.5 w-3.5" />} onClick={onClose} aria-label="Cancelar" />
+    </form>
+  );
+}
 
 export default function GroupsPage() {
   const { data: groups, isLoading, isError } = useWhatsAppGroups();
   const [search, setSearch] = useState("");
+  const [composingJid, setComposingJid] = useState<string | null>(null);
 
   const filtered = useMemo(() => {
     if (!groups) return [];
@@ -57,29 +103,30 @@ export default function GroupsPage() {
             description="Os grupos do WhatsApp conectado aparecerão aqui."
           />
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left">
-              <thead>
-                <tr className="border-b border-border text-xs text-text-tertiary">
-                  <th className="px-4 py-2.5 font-medium">Grupo</th>
-                  <th className="px-4 py-2.5 font-medium">Participantes</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filtered.map((group) => (
-                  <tr key={group.jid} className="border-b border-border last:border-0">
-                    <td className="px-4 py-2.5">
-                      <div className="flex items-center gap-2.5">
-                        <Avatar src={group.avatarUrl} name={group.nome || "?"} size="sm" />
-                        <span className="text-sm font-medium text-text-primary">{group.nome || group.jid}</span>
-                      </div>
-                    </td>
-                    <td className="px-4 py-2.5 text-sm text-text-secondary">{group.participantes}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <ul className="divide-y divide-border">
+            {filtered.map((group) => (
+              <li key={group.jid}>
+                <div className="flex items-center gap-2.5 px-4 py-2.5">
+                  <Avatar src={group.avatarUrl} name={group.nome || "?"} size="sm" />
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-medium text-text-primary">{group.nome || group.jid}</p>
+                    <p className="truncate text-xs text-text-tertiary">{group.participantes} participantes</p>
+                  </div>
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    icon={<MessageCircle className="h-3.5 w-3.5" />}
+                    onClick={() => setComposingJid((current) => (current === group.jid ? null : group.jid))}
+                  >
+                    Enviar mensagem
+                  </Button>
+                </div>
+                {composingJid === group.jid && (
+                  <SendMessageRow group={group} onClose={() => setComposingJid(null)} />
+                )}
+              </li>
+            ))}
+          </ul>
         )}
       </Card>
     </div>
