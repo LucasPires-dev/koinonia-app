@@ -10,44 +10,53 @@ import type { WhatsAppGroup } from "../../types/group";
 
 function SendMessageRow({ group, onClose }: { group: WhatsAppGroup; onClose: () => void }) {
   const [text, setText] = useState("");
+  const [error, setError] = useState<string | null>(null);
   const sendGroupMessage = useSendGroupMessage();
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     const content = text.trim();
     if (!content) return;
-    await sendGroupMessage.mutateAsync({
-      jid: group.jid,
-      content,
-      nome: group.nome,
-      avatarUrl: group.avatarUrl,
-      participantes: group.participantes,
-    });
-    setText("");
-    onClose();
+    setError(null);
+    try {
+      await sendGroupMessage.mutateAsync({
+        jid: group.jid,
+        content,
+        nome: group.nome,
+        avatarUrl: group.avatarUrl,
+        participantes: group.participantes,
+      });
+      setText("");
+      onClose();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Falha ao enviar a mensagem.");
+    }
   }
 
   return (
-    <form onSubmit={handleSubmit} className="flex items-center gap-2 px-4 pb-3">
-      <Input
-        autoFocus
-        value={text}
-        onChange={(e) => setText(e.target.value)}
-        onKeyDown={(e) => e.key === "Escape" && onClose()}
-        placeholder={`Mensagem para ${group.nome || "o grupo"}…`}
-        className="flex-1"
-      />
-      <Button
-        type="submit"
-        size="sm"
-        variant="primary"
-        icon={<Send className="h-3.5 w-3.5" />}
-        loading={sendGroupMessage.isPending}
-        disabled={!text.trim()}
-        aria-label="Enviar"
-      />
-      <Button type="button" size="sm" variant="ghost" icon={<X className="h-3.5 w-3.5" />} onClick={onClose} aria-label="Cancelar" />
-    </form>
+    <div className="px-4 pb-3">
+      <form onSubmit={handleSubmit} className="flex items-center gap-2">
+        <Input
+          autoFocus
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          onKeyDown={(e) => e.key === "Escape" && onClose()}
+          placeholder={`Mensagem para ${group.nome || "o grupo"}…`}
+          className="flex-1"
+        />
+        <Button
+          type="submit"
+          size="sm"
+          variant="primary"
+          icon={<Send className="h-3.5 w-3.5" />}
+          loading={sendGroupMessage.isPending}
+          disabled={!text.trim()}
+          aria-label="Enviar"
+        />
+        <Button type="button" size="sm" variant="ghost" icon={<X className="h-3.5 w-3.5" />} onClick={onClose} aria-label="Cancelar" />
+      </form>
+      {error && <p className="mt-1.5 text-xs text-danger">{error}</p>}
+    </div>
   );
 }
 

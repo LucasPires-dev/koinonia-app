@@ -117,6 +117,7 @@ function ThreadView({
 }) {
   const [text, setText] = useState("");
   const [lightbox, setLightbox] = useState<string | null>(null);
+  const [sendError, setSendError] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const recorder = useAudioRecorder((blob) => onSendAudio?.(blob));
 
@@ -128,8 +129,13 @@ function ThreadView({
     e.preventDefault();
     const content = text.trim();
     if (!content) return;
-    setText("");
-    await onSend(content);
+    setSendError(null);
+    try {
+      await onSend(content);
+      setText("");
+    } catch (err) {
+      setSendError(err instanceof Error ? err.message : "Falha ao enviar a mensagem.");
+    }
   }
 
   return (
@@ -180,6 +186,9 @@ function ThreadView({
         })}
       </div>
 
+      {sendError && (
+        <p className="border-t border-border bg-danger-soft px-3 py-1.5 text-xs text-danger">{sendError}</p>
+      )}
       <form onSubmit={handleSubmit} className="flex items-center gap-2 border-t border-border p-3">
         <Input
           value={text}
